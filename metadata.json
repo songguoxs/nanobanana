@@ -1,0 +1,5 @@
+{
+  "name": "OpenNana图片生成器",
+  "description": "使用 AI 同时进行图片生成、多图编辑和历史记录查看。",
+  "requestFramePermissions": []
+}
