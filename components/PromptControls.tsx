@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { SendIcon, PlusIcon } from './Icons';
 
 interface PromptControlsProps {
@@ -8,6 +8,7 @@ interface PromptControlsProps {
   isLoading: boolean;
   hasImage: boolean;
   onUploadClick: () => void;
+  placeholder?: string;
 }
 
 export const PromptControls: React.FC<PromptControlsProps> = ({
@@ -17,11 +18,26 @@ export const PromptControls: React.FC<PromptControlsProps> = ({
   isLoading,
   hasImage,
   onUploadClick,
+  placeholder,
 }) => {
-  
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      const textarea = textareaRef.current;
+      // 重置高度以重新计算
+      textarea.style.height = 'auto'; 
+      const scrollHeight = textarea.scrollHeight;
+      // 设置为内容高度，由CSS中的max-height限制
+      textarea.style.height = `${scrollHeight}px`; 
+      // 调整大小后，滚动到底部以确保光标可见
+      textarea.scrollTop = textarea.scrollHeight;
+    }
+  }, [prompt]);
+
   const getPlaceholder = () => {
     if(hasImage) return "例如：“把背景换成火星”，或“给所有图片加上赛博朋克风格”";
-    return "例如：“一只戴着宇航员头盔的猫”";
+    return placeholder || "例如：“一只戴着宇航员头盔的猫”";
   }
 
   return (
@@ -38,6 +54,7 @@ export const PromptControls: React.FC<PromptControlsProps> = ({
           </button>
 
           <textarea
+            ref={textareaRef}
             value={prompt}
             onChange={(e) => onPromptChange(e.target.value)}
             onKeyDown={(e) => {

@@ -12,7 +12,7 @@ export const Header: React.FC<HeaderProps> = ({ onHistoryClick, onNewSession, on
     <header className="bg-[var(--color-bg-primary-translucent)] backdrop-blur-sm border-b border-[var(--color-border)] sticky top-0 z-10">
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
         <h1 className="text-2xl md:text-3xl font-bold text-center bg-gradient-to-r from-[var(--color-gradient-from)] to-[var(--color-gradient-to)] text-transparent bg-clip-text">
-          Nano Banana体验版V1.0
+          Nano Banana体验版V1.1
         </h1>
         <div className="flex items-center gap-2 md:gap-4">
             <button

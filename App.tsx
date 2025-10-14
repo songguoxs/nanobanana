@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Header } from './components/Header';
 import { PromptControls } from './components/PromptControls';
@@ -8,7 +9,7 @@ import { CloseIcon } from './components/Icons';
 import { ImageUploader } from './components/ImageUploader';
 import { WelcomeScreen } from './components/WelcomeScreen';
 import { Footer } from './components/Footer';
-import { editImageWithNanoBanana, generateImageWithImagen } from './services/geminiService';
+import { editImageWithNanoBanana, generateImage } from './services/geminiService';
 import type { OriginalImage, EditedImageResult, HistoryItem } from './types';
 
 const themes = [
@@ -23,6 +24,7 @@ const themes = [
 const App: React.FC = () => {
   const [originalImages, setOriginalImages] = useState<OriginalImage[]>([]);
   const [prompt, setPrompt] = useState<string>('');
+  const [placeholderPrompt, setPlaceholderPrompt] = useState<string>('');
   const [currentResult, setCurrentResult] = useState<EditedImageResult | null>(null);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [selectedHistoryItem, setSelectedHistoryItem] = useState<HistoryItem | null>(null);
@@ -40,6 +42,12 @@ const App: React.FC = () => {
 
   const cycleTheme = useCallback(() => {
     setThemeIndex(prev => (prev + 1) % themes.length);
+  }, []);
+
+  const handleSuggestionsGenerated = useCallback((suggestions: { prompt: string }[]) => {
+      if (suggestions.length > 0) {
+        setPlaceholderPrompt(suggestions[0].prompt);
+      }
   }, []);
 
   useEffect(() => {
@@ -88,7 +96,8 @@ const App: React.FC = () => {
         return;
     }
 
-    const imagePromises: Promise<Omit<OriginalImage, 'id'>>[] = Array.from(files).map(file => {
+    // Fix: Explicitly type 'file' as File and reject with an Error object.
+    const imagePromises: Promise<Omit<OriginalImage, 'id'>>[] = Array.from(files).map((file: File) => {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onloadend = () => {
@@ -102,7 +111,7 @@ const App: React.FC = () => {
             reject(new Error("Failed to read file"));
           }
         };
-        reader.onerror = reject;
+        reader.onerror = (error) => reject(new Error('Error reading file: ' + error));
         reader.readAsDataURL(file);
       });
     });
@@ -144,8 +153,7 @@ const App: React.FC = () => {
           prompt
         );
       } else {
-        const imageUrl = await generateImageWithImagen(prompt);
-        result = { imageUrl, text: null };
+        result = await generateImage(prompt);
       }
       
       setCurrentResult(result);
@@ -229,7 +237,7 @@ const App: React.FC = () => {
                 />
             </div>
         ) : (
-            <WelcomeScreen onSuggestionClick={setPrompt} />
+            <WelcomeScreen onSuggestionClick={setPrompt} onSuggestionsGenerated={handleSuggestionsGenerated} />
         )}
       </main>
 
@@ -240,6 +248,7 @@ const App: React.FC = () => {
         isLoading={isLoading}
         hasImage={hasImage}
         onUploadClick={handleUploadClick}
+        placeholder={placeholderPrompt}
       />
 
       <Footer />
